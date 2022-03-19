@@ -29,7 +29,6 @@ public class AuthController extends ControllerAdvice {
         this.jwtProperties = jwtProperties;
     }
 
-    @RequestMapping()
     @PostMapping("/login")
     public ResponseEntity<User> login(@RequestBody User user, HttpServletRequest request) {
         User loginUser = userService.login(user.getEmail(), user.getPassword(), request);

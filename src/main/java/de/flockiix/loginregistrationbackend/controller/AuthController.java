@@ -1,11 +1,11 @@
 package de.flockiix.loginregistrationbackend.controller;
 
 import de.flockiix.loginregistrationbackend.advice.ControllerAdvice;
+import de.flockiix.loginregistrationbackend.config.properties.JwtProperties;
 import de.flockiix.loginregistrationbackend.constant.JwtConstant;
 import de.flockiix.loginregistrationbackend.exception.InvalidRefreshTokenException;
 import de.flockiix.loginregistrationbackend.jwt.JwtTokenProvider;
 import de.flockiix.loginregistrationbackend.model.User;
-import de.flockiix.loginregistrationbackend.config.properties.JwtProperties;
 import de.flockiix.loginregistrationbackend.service.UserService;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;

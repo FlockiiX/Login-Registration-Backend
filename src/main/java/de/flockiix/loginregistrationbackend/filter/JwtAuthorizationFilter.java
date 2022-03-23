@@ -1,7 +1,7 @@
 package de.flockiix.loginregistrationbackend.filter;
 
-import de.flockiix.loginregistrationbackend.jwt.JwtTokenProvider;
 import de.flockiix.loginregistrationbackend.config.properties.JwtProperties;
+import de.flockiix.loginregistrationbackend.jwt.JwtTokenProvider;
 import org.springframework.http.HttpMethod;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.GrantedAuthority;

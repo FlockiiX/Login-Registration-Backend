@@ -1,11 +1,11 @@
 package de.flockiix.loginregistrationbackend.controller;
 
 import de.flockiix.loginregistrationbackend.advice.ControllerAdvice;
+import de.flockiix.loginregistrationbackend.config.properties.JwtProperties;
 import de.flockiix.loginregistrationbackend.dto.PasswordDto;
 import de.flockiix.loginregistrationbackend.exception.UserNotFoundException;
 import de.flockiix.loginregistrationbackend.model.HttpResponse;
 import de.flockiix.loginregistrationbackend.model.User;
-import de.flockiix.loginregistrationbackend.config.properties.JwtProperties;
 import de.flockiix.loginregistrationbackend.service.UserService;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;

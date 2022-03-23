@@ -3,8 +3,8 @@ package de.flockiix.loginregistrationbackend.filter;
 import com.google.common.cache.CacheBuilder;
 import com.google.common.cache.CacheLoader;
 import com.google.common.cache.LoadingCache;
-import de.flockiix.loginregistrationbackend.model.HttpResponse;
 import de.flockiix.loginregistrationbackend.config.properties.SecurityProperties;
+import de.flockiix.loginregistrationbackend.model.HttpResponse;
 import de.flockiix.loginregistrationbackend.util.RequestWrapper;
 import de.flockiix.loginregistrationbackend.util.Utils;
 import org.slf4j.Logger;
@@ -45,7 +45,7 @@ public class RequestThrottleFilter implements Filter {
         HttpServletResponse httpServletResponse = (HttpServletResponse) servletResponse;
         String clientIpAddress = Utils.getClientIpAddress(httpServletRequest);
         if (isMaximumRequestsPerSecondExceeded(clientIpAddress)) {
-            HttpResponse httpResponse = Utils.buildHttpResponse(TOO_MANY_REQUESTS, "Too many requests");
+            HttpResponse httpResponse = Utils.buildHttpResponse(TOO_MANY_REQUESTS, TOO_MANY_REQUESTS.getReasonPhrase());
             Utils.handleResponse(httpResponse, httpServletResponse);
             return;
         }

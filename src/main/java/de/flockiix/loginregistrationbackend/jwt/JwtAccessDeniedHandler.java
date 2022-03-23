@@ -16,7 +16,7 @@ import static org.springframework.http.HttpStatus.UNAUTHORIZED;
 public class JwtAccessDeniedHandler implements AccessDeniedHandler {
     @Override
     public void handle(HttpServletRequest request, HttpServletResponse response, AccessDeniedException exception) throws IOException {
-        HttpResponse httpResponse = Utils.buildHttpResponse(UNAUTHORIZED, "You do not have permission to access this page");
+        HttpResponse httpResponse = Utils.buildHttpResponse(UNAUTHORIZED, UNAUTHORIZED.getReasonPhrase());
         Utils.handleResponse(httpResponse, response);
     }
 }

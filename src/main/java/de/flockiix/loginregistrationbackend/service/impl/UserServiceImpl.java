@@ -251,5 +251,6 @@ public class UserServiceImpl implements UserService {
         User user = findUserByEmail(currentAuth.getPrincipal().toString())
                 .orElseThrow(() -> new InvalidAuthenticationException("Invalid authentication"));
         incrementRefreshTokenCount(user);
+        SecurityContextHolder.clearContext();
     }
 }

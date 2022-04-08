@@ -31,6 +31,12 @@ public class ControllerAdvice {
     private static final Logger LOGGER = LoggerFactory.getLogger(ControllerAdvice.class);
 
     // CUSTOM EXCEPTIONS
+
+    @ExceptionHandler(EmailNotVerifiedException.class)
+    public ResponseEntity<HttpResponse> emailNotVerifiedException(EmailNotVerifiedException exception) {
+        return createHttpResponse(UNAUTHORIZED, exception.getMessage());
+    }
+
     @ExceptionHandler(DeviceVerificationException.class)
     public ResponseEntity<HttpResponse> deviceVerificationException(DeviceVerificationException exception) {
         return createHttpResponse(BAD_REQUEST, exception.getMessage());
@@ -98,7 +104,7 @@ public class ControllerAdvice {
 
     @ExceptionHandler(DisabledException.class)
     public ResponseEntity<HttpResponse> accountDisabledException() {
-        return createHttpResponse(BAD_REQUEST, "Your account has been disabled");
+        return createHttpResponse(BAD_REQUEST, "Your account is disabled");
     }
 
     @ExceptionHandler(BadCredentialsException.class)
@@ -112,8 +118,8 @@ public class ControllerAdvice {
     }
 
     @ExceptionHandler(LockedException.class)
-    public ResponseEntity<HttpResponse> lockedException() {
-        return createHttpResponse(UNAUTHORIZED, "Your account has been locked");
+    public ResponseEntity<HttpResponse> lockedException(LockedException exception) {
+        return createHttpResponse(UNAUTHORIZED, exception.getMessage());
     }
 
     @ExceptionHandler(TokenExpiredException.class)

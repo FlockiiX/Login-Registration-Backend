@@ -12,7 +12,10 @@ public record UserPrincipal(User user) implements UserDetails {
 
     @Override
     public Collection<? extends GrantedAuthority> getAuthorities() {
-        return Arrays.stream(user.getRole().getAuthorities()).map(SimpleGrantedAuthority::new).collect(Collectors.toList());
+        return Arrays
+                .stream(user.getRole().getAuthorities())
+                .map(SimpleGrantedAuthority::new)
+                .collect(Collectors.toList());
     }
 
     @Override
@@ -32,7 +35,7 @@ public record UserPrincipal(User user) implements UserDetails {
 
     @Override
     public boolean isAccountNonLocked() {
-        return user.isNotLocked();
+        return user.isActive();
     }
 
     @Override
@@ -42,6 +45,6 @@ public record UserPrincipal(User user) implements UserDetails {
 
     @Override
     public boolean isEnabled() {
-        return user.isEnabled();
+        return user.isEmailVerified();
     }
 }

@@ -51,10 +51,10 @@ public class User {
     @JsonProperty(access = JsonProperty.Access.WRITE_ONLY)
     private String secret;
     private int refreshTokenCount;
-    private boolean isEnabled;
-    private boolean isNotLocked;
+    private boolean isActive;
+    private boolean isEmailVerified;
 
-    public User(String firstName, String lastName, String displayName, String email, String password, Date joinDate, Role role, boolean isEnabled, boolean isNotLocked) {
+    public User(String firstName, String lastName, String displayName, String email, String password, Date joinDate, Role role, boolean isActive, boolean isEmailVerified) {
         this.userId = RandomStringUtils.randomNumeric(10);
         this.firstName = firstName;
         this.lastName = lastName;
@@ -67,8 +67,8 @@ public class User {
         this.isUsing2FA = false;
         this.secret = Base32.random();
         this.refreshTokenCount = 0;
-        this.isEnabled = isEnabled;
-        this.isNotLocked = isNotLocked;
+        this.isActive = isActive;
+        this.isEmailVerified = isEmailVerified;
     }
 
     public User() {
@@ -187,19 +187,19 @@ public class User {
         this.refreshTokenCount = refreshTokenCount;
     }
 
-    public boolean isEnabled() {
-        return isEnabled;
+    public boolean isActive() {
+        return isActive;
     }
 
-    public void setEnabled(boolean enabled) {
-        isEnabled = enabled;
+    public void setActive(boolean active) {
+        isActive = active;
     }
 
-    public boolean isNotLocked() {
-        return isNotLocked;
+    public boolean isEmailVerified() {
+        return isEmailVerified;
     }
 
-    public void setNotLocked(boolean notLocked) {
-        isNotLocked = notLocked;
+    public void setEmailVerified(boolean emailVerified) {
+        isEmailVerified = emailVerified;
     }
 }

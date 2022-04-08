@@ -87,13 +87,11 @@ public class LoginAttemptCache {
      * @param user the user
      */
     public void validateLoginAttempt(User user) {
-        if (user.isNotLocked()) {
+        if (user.isActive()) {
             if (isBlocked(user.getEmail())) {
-                if (user.isNotLocked())
+                if (user.isActive())
                     sendEmail(user.getEmail(), "User Management Security", EmailConstant.buildAccountLockedEmail(user.getFirstName()));
-                user.setNotLocked(false);
-            } else {
-                user.setNotLocked(true);
+                user.setActive(false);
             }
             if (getLoginAttempts(user.getEmail()) == 3)
                 sendEmail(user.getEmail(), "Safety warning", EmailConstant.buildSafetyWarningEmail(user.getFirstName()));

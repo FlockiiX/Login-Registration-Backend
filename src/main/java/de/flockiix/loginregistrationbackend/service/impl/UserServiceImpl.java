@@ -59,10 +59,14 @@ public class UserServiceImpl implements UserService {
                 .findUserByEmail(email)
                 .orElseThrow(() -> new UserNotFoundException("Wrong email or password"));
 
+        if(!user.isEmailVerified())
+            throw new EmailNotVerifiedException("Email is not verified");
+
         UsernamePasswordAuthenticationToken token = new UsernamePasswordAuthenticationToken(email, password + user.getSecret());
         token.setDetails(
                 new CustomWebAuthenticationDetailsSource().buildDetails(request)
         );
+
         authenticationManager.authenticate(token);
         deviceMetadataService.verifyDevice(user, request);
         return user;
@@ -83,7 +87,7 @@ public class UserServiceImpl implements UserService {
                 new Date(),
                 Role.UNVERIFIED,
                 false,
-                true
+                false
         );
 
         String encodedPassword = bCryptPasswordEncoder.encode(password + user.getSecret());

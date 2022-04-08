@@ -91,7 +91,7 @@ public class UserControllerIT {
     void loginWithoutConfirmedAccount() throws Exception {
         UserPayload userPayload = getUserPayload();
         register(userPayload, status().isOk());
-        login(userPayload, status().isBadRequest(), getHeaders());
+        login(userPayload, status().isUnauthorized(), getHeaders());
     }
 
     @Test

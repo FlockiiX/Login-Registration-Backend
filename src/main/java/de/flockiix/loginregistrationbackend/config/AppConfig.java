@@ -16,7 +16,7 @@ import java.util.Collections;
 
 @Configuration
 public class AppConfig {
-    @Value("classpath:maxmind/GeoLite2-City.mmdb")
+    @Value("classpath:GeoLite2-City.mmdb")
     private Resource geoLiteCity;
 
     @Bean
@@ -26,7 +26,7 @@ public class AppConfig {
 
     @Bean(name = "GeoIPCity")
     public DatabaseReader databaseReader() throws IOException {
-        return new DatabaseReader.Builder(geoLiteCity.getFile()).build();
+        return new DatabaseReader.Builder(geoLiteCity.getInputStream()).build();
     }
 
     @Bean

@@ -1,0 +1,52 @@
+application:
+  jwt:
+    prefix: Bearer
+    accessTokenSecret: secret
+    refreshTokenSecret: secret
+    accessTokenExpiresIn: 15
+    refreshTokenExpiresIn: 90
+  security:
+    loginAttempts: 5
+    requestLimit: 10
+
+server:
+  port: 8080
+  error:
+    include-message: always
+    include-binding-errors: always
+
+spring:
+  datasource:
+    url: jdbc:postgresql://localhost:5432/mydb
+    password: password
+    username: username
+  jpa:
+    show-sql: true
+    hibernate:
+      ddl-auto: create-drop
+    properties:
+      hibernate:
+        dialect: org.hibernate.dialect.PostgreSQLDialect
+  mvc:
+    throw-exception-if-no-handler-found: true
+  web:
+    resources:
+      add-mappings: false
+
+  mail:
+    host: maildev
+    port: 1025
+    username: username
+    password: password
+
+    properties:
+      mail:
+        smtp:
+          ssl:
+            trust: "*"
+          auth: true
+          starttls:
+            enable: true
+          connectiontimeout: 5000
+          timeout: 3000
+          writetimeout: 5000

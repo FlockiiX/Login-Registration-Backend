@@ -59,7 +59,7 @@ public class UserServiceImpl implements UserService {
                 .findUserByEmail(email)
                 .orElseThrow(() -> new UserNotFoundException("Wrong email or password"));
 
-        if(!user.isEmailVerified())
+        if (!user.isEmailVerified())
             throw new EmailNotVerifiedException("Email is not verified");
 
         UsernamePasswordAuthenticationToken token = new UsernamePasswordAuthenticationToken(email, password + user.getSecret());

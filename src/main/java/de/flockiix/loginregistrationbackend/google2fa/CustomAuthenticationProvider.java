@@ -3,8 +3,8 @@ package de.flockiix.loginregistrationbackend.google2fa;
 import de.flockiix.loginregistrationbackend.cache.LoginAttemptCache;
 import de.flockiix.loginregistrationbackend.model.BackupCode;
 import de.flockiix.loginregistrationbackend.model.User;
+import de.flockiix.loginregistrationbackend.repository.UserRepository;
 import de.flockiix.loginregistrationbackend.service.BackupCodeService;
-import de.flockiix.loginregistrationbackend.service.UserService;
 import de.flockiix.loginregistrationbackend.util.Utils;
 import org.jboss.aerogear.security.otp.Totp;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -15,19 +15,22 @@ import org.springframework.security.core.Authentication;
 import org.springframework.security.core.AuthenticationException;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 
+import javax.transaction.Transactional;
+
+@Transactional
 public class CustomAuthenticationProvider extends DaoAuthenticationProvider {
-    @Autowired
-    private UserService userService;
     @Autowired
     private BackupCodeService backupCodeService;
     @Autowired
     private BCryptPasswordEncoder bCryptPasswordEncoder;
     @Autowired
     private LoginAttemptCache loginAttemptCache;
+    @Autowired
+    private UserRepository userRepository;
 
     @Override
     public Authentication authenticate(Authentication auth) throws AuthenticationException {
-        User user = userService
+        User user = userRepository
                 .findUserByEmail(auth.getName())
                 .orElseThrow(() -> new BadCredentialsException("Invalid email or password"));
 

@@ -15,9 +15,6 @@ import org.springframework.security.core.Authentication;
 import org.springframework.security.core.AuthenticationException;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 
-import javax.transaction.Transactional;
-
-@Transactional
 public class CustomAuthenticationProvider extends DaoAuthenticationProvider {
     @Autowired
     private BackupCodeService backupCodeService;
@@ -59,8 +56,8 @@ public class CustomAuthenticationProvider extends DaoAuthenticationProvider {
      * If the verification code matches the backup code is saved as used and cannot be used again.
      *
      * @param user             the user
-     * @param verificationCode the otp code
-     * @return true if the verificationCode matches an unused backup code and false otherwise
+     * @param verificationCode the otp
+     * @return {@code true} if the verificationCode matches an unused backup code and {@code false} otherwise
      */
     private boolean matchesBackupCode(User user, String verificationCode) {
         boolean matches = false;

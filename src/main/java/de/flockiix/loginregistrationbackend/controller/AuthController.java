@@ -16,6 +16,8 @@ import org.springframework.web.bind.annotation.*;
 import javax.servlet.http.HttpServletRequest;
 import java.util.concurrent.TimeUnit;
 
+import static org.springframework.http.HttpStatus.OK;
+
 @RestController
 @RequestMapping("/api/v1/auth")
 public class AuthController extends ControllerAdvice {
@@ -34,6 +36,12 @@ public class AuthController extends ControllerAdvice {
         User loginUser = userService.login(user.getEmail(), user.getPassword(), request);
         HttpHeaders jwtHeader = getJwtHeader(loginUser, jwtTokenProvider.generateJwtRefreshToken(loginUser));
         return new ResponseEntity<>(loginUser, jwtHeader, HttpStatus.OK);
+    }
+
+    @GetMapping("/logout")
+    public ResponseEntity<?> logout() {
+        userService.logout();
+        return new ResponseEntity<>("Logged out", OK);
     }
 
     @GetMapping("/refresh")

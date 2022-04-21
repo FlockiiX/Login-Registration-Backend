@@ -10,12 +10,12 @@ import de.flockiix.loginregistrationbackend.model.User;
 import de.flockiix.loginregistrationbackend.service.EmailService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.stereotype.Service;
+import org.springframework.stereotype.Component;
 
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.TimeUnit;
 
-@Service
+@Component
 public class LoginAttemptCache {
     private static final Logger LOGGER = LoggerFactory.getLogger(LoginAttemptCache.class);
     private final LoadingCache<String, Integer> attemptCache;
@@ -87,14 +87,15 @@ public class LoginAttemptCache {
      * @param user the user
      */
     public void validateLoginAttempt(User user) {
-        if (user.isActive()) {
-            if (isBlocked(user.getEmail())) {
-                if (user.isActive())
-                    sendEmail(user.getEmail(), "User Management Security", EmailConstant.buildAccountLockedEmail(user.getFirstName()));
-                user.setActive(false);
-            }
-            if (getLoginAttempts(user.getEmail()) == 3)
-                sendEmail(user.getEmail(), "Safety warning", EmailConstant.buildSafetyWarningEmail(user.getFirstName()));
+        if(!user.isActive())
+            return;
+
+        if (getLoginAttempts(user.getEmail()) == 3)
+            sendEmail(user.getEmail(), "Safety warning", EmailConstant.buildSafetyWarningEmail(user.getFirstName()));
+
+        if (isBlocked(user.getEmail())) {
+            sendEmail(user.getEmail(), "User Management Security", EmailConstant.buildAccountLockedEmail(user.getFirstName()));
+            user.setActive(false);
         }
     }
 

@@ -8,12 +8,10 @@ import org.apache.commons.lang3.RandomStringUtils;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.stereotype.Service;
 
-import javax.transaction.Transactional;
 import java.util.ArrayList;
 import java.util.List;
 
 @Service
-@Transactional
 public class BackupCodeServiceImpl implements BackupCodeService {
     private final BackupCodeRepository backupCodeRepository;
     private final BCryptPasswordEncoder bCryptPasswordEncoder;
@@ -57,6 +55,6 @@ public class BackupCodeServiceImpl implements BackupCodeService {
 
     @Override
     public void setBackupCodeUsed(BackupCode backupCode) {
-        backupCodeRepository.setBackupCodeUsed(backupCode.getCode());
+        backupCode.setUsed(true);
     }
 }

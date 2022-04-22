@@ -8,11 +8,9 @@ import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.stereotype.Service;
 
-import javax.transaction.Transactional;
 import java.util.Date;
 
 @Service
-@Transactional
 public class CustomUserDetailsService implements UserDetailsService {
     private final UserRepository userRepository;
 
@@ -27,7 +25,6 @@ public class CustomUserDetailsService implements UserDetailsService {
                 .orElseThrow(() -> new UsernameNotFoundException("No user found by email: " + email));
 
         user.setLastLoggedIn(new Date());
-        userRepository.save(user);
         return new UserPrincipal(user);
     }
 }

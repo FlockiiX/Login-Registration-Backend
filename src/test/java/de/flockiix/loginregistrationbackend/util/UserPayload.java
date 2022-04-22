@@ -1,4 +1,4 @@
-package de.flockiix.loginregistrationbackend.payload;
+package de.flockiix.loginregistrationbackend.util;
 public class UserPayload {
     private String firstName;
     private String lastName;

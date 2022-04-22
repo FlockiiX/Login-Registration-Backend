@@ -17,6 +17,7 @@ import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.MissingServletRequestParameterException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
+import org.springframework.web.method.annotation.MethodArgumentTypeMismatchException;
 import org.springframework.web.servlet.NoHandlerFoundException;
 
 import javax.persistence.NoResultException;
@@ -30,11 +31,9 @@ import static org.springframework.http.HttpStatus.*;
 public class ControllerAdvice {
     private static final Logger LOGGER = LoggerFactory.getLogger(ControllerAdvice.class);
 
-    // CUSTOM EXCEPTIONS
-
     @ExceptionHandler(EmailNotVerifiedException.class)
     public ResponseEntity<HttpResponse> emailNotVerifiedException(EmailNotVerifiedException exception) {
-        return createHttpResponse(UNAUTHORIZED, exception.getMessage());
+        return createHttpResponse(BAD_REQUEST, exception.getMessage());
     }
 
     @ExceptionHandler(DeviceVerificationException.class)
@@ -109,9 +108,14 @@ public class ControllerAdvice {
 
     @ExceptionHandler(BadCredentialsException.class)
     public ResponseEntity<HttpResponse> badCredentialsException(BadCredentialsException exception) {
-        return createHttpResponse(BAD_REQUEST, "Username / password incorrect. Please try again");
+        LOGGER.info(exception.getLocalizedMessage(), exception.getCause());
+        return createHttpResponse(BAD_REQUEST, exception.getMessage());
     }
 
+    @ExceptionHandler(Same2FAStateException.class)
+    public ResponseEntity<HttpResponse> same2FAStateException(Same2FAStateException exception) {
+        return createHttpResponse(BAD_REQUEST, exception.getMessage());
+    }
     @ExceptionHandler(AccessDeniedException.class)
     public ResponseEntity<HttpResponse> accessDeniedException() {
         return createHttpResponse(FORBIDDEN, "You do not have enough permission");
@@ -124,7 +128,12 @@ public class ControllerAdvice {
 
     @ExceptionHandler(TokenExpiredException.class)
     public ResponseEntity<HttpResponse> tokenExpiredException(TokenExpiredException exception) {
-        return createHttpResponse(UNAUTHORIZED, exception.getMessage());
+        return createHttpResponse(BAD_REQUEST, exception.getMessage());
+    }
+
+    @ExceptionHandler(TokenRequestNotAllowedException.class)
+    public ResponseEntity<HttpResponse> tokenRequestNotAllowedException(TokenRequestNotAllowedException exception) {
+        return createHttpResponse(BAD_REQUEST, exception.getMessage());
     }
 
     @ExceptionHandler(NoHandlerFoundException.class)
@@ -136,6 +145,11 @@ public class ControllerAdvice {
     public ResponseEntity<HttpResponse> methodNotSupportedException(HttpRequestMethodNotSupportedException exception) {
         HttpMethod supportedMethod = Objects.requireNonNull(exception.getSupportedHttpMethods()).iterator().next();
         return createHttpResponse(METHOD_NOT_ALLOWED, String.format("This request method is not allowed on this endpoint. Please send a '%s' request", supportedMethod));
+    }
+
+    @ExceptionHandler(MethodArgumentTypeMismatchException.class)
+    public ResponseEntity<HttpResponse> methodArgumentTypeMismatchException(MethodArgumentTypeMismatchException exception) {
+        return createHttpResponse(BAD_REQUEST, exception.getMessage());
     }
 
     @ExceptionHandler(Exception.class)
@@ -151,7 +165,6 @@ public class ControllerAdvice {
 
     @ExceptionHandler(NoResultException.class)
     public ResponseEntity<HttpResponse> notFoundException(NoResultException exception) {
-        LOGGER.error(exception.getMessage());
         return createHttpResponse(NOT_FOUND, exception.getMessage());
     }
 

@@ -19,14 +19,12 @@ import ua_parser.Client;
 import ua_parser.Parser;
 
 import javax.servlet.http.HttpServletRequest;
-import javax.transaction.Transactional;
 import java.io.IOException;
 import java.net.InetAddress;
 import java.util.Date;
 import java.util.List;
 
 @Service
-@Transactional
 public class DeviceMetadataServiceImpl implements DeviceMetadataService {
     private final Parser parser;
     private final DatabaseReader databaseReader;
@@ -44,15 +42,14 @@ public class DeviceMetadataServiceImpl implements DeviceMetadataService {
     @Override
     public void verifyDevice(User user, HttpServletRequest request) {
         try {
-            String ip = Utils.getClientIpAddress(request);
-            String location = getIpLocation(ip);
-            String deviceDetails = getDeviceDetails(request.getHeader("User-Agent"));
-            DeviceMetadata existingDevice = findExistingDevice(user, deviceDetails, location);
-            int devices = findExistingDevices(user);
+            var ip = Utils.getClientIpAddress(request);
+            var location = getIpLocation(ip);
+            var deviceDetails = getDeviceDetails(request.getHeader("User-Agent"));
+            var existingDevice = findExistingDevice(user, deviceDetails, location);
+            var devices = findExistingDevices(user);
 
             if (existingDevice != null) {
                 existingDevice.setLastLoggedIn(new Date());
-                deviceMetadataRepository.save(existingDevice);
                 return;
             }
 
@@ -68,6 +65,7 @@ public class DeviceMetadataServiceImpl implements DeviceMetadataService {
 
             deviceMetadataRepository.save(metadata);
         } catch (Exception exception) {
+
             throw new DeviceVerificationException("Failed to verify Device");
         }
     }

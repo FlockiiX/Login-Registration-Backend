@@ -12,15 +12,16 @@ import de.flockiix.loginregistrationbackend.model.User;
 import de.flockiix.loginregistrationbackend.repository.UserRepository;
 import de.flockiix.loginregistrationbackend.service.*;
 import org.springframework.security.authentication.AuthenticationManager;
+import org.springframework.security.authentication.LockedException;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.servlet.support.ServletUriComponentsBuilder;
 
 import javax.servlet.http.HttpServletRequest;
-import javax.transaction.Transactional;
 import java.net.URLEncoder;
 import java.nio.charset.StandardCharsets;
 import java.time.LocalDateTime;
@@ -54,6 +55,7 @@ public class UserServiceImpl implements UserService {
     }
 
     @Override
+    @Transactional(noRollbackFor = LockedException.class)
     public User login(String email, String password, HttpServletRequest request) {
         User user = userRepository
                 .findUserByEmail(email)
@@ -74,7 +76,9 @@ public class UserServiceImpl implements UserService {
 
     @Override
     public void register(String firstName, String lastName, String displayName, String email, String password) {
-        boolean emailExists = findUserByEmail(email).isPresent();
+        boolean emailExists = userRepository
+                .findUserByEmail(email)
+                .isPresent();
         if (emailExists)
             throw new EmailExistException("Email already exists");
 
@@ -90,22 +94,16 @@ public class UserServiceImpl implements UserService {
                 false
         );
 
+        userRepository.save(user);
         String encodedPassword = bCryptPasswordEncoder.encode(password + user.getSecret());
         user.setPassword(encodedPassword);
-        userRepository.save(user);
         sendConfirmationToken(user);
     }
 
     private void sendConfirmationToken(User user) {
-        ConfirmationToken confirmationToken = new ConfirmationToken(
-                LocalDateTime.now(),
-                LocalDateTime.now().plusMinutes(15),
-                user
-        );
-
-        confirmationTokenService.saveConfirmationToken(confirmationToken);
-        String link = ServletUriComponentsBuilder.fromCurrentContextPath().toUriString() + "/api/v1/user/confirm?token=" + confirmationToken.getToken();
-        emailService.sendEmail(user.getEmail(), "Confirm your account", EmailConstant.buildConfirmEmail(user.getFirstName(), link));
+        ConfirmationToken confirmationToken = confirmationTokenService.createConfirmationTokenForUser(user);
+        String url = ServletUriComponentsBuilder.fromCurrentContextPath().toUriString() + "/api/v1/user/confirm?token=" + confirmationToken.getToken();
+        emailService.sendEmail(user.getEmail(), "Confirm your account", EmailConstant.buildConfirmEmail(user.getFirstName(), url));
     }
 
     @Override
@@ -122,19 +120,16 @@ public class UserServiceImpl implements UserService {
             throw new TokenExpiredException("Confirmation token expired");
 
         User user = confirmationToken.getUser();
+        user.setRole(Role.USER);
+        user.setEmailVerified(true);
+        user.setActive(true);
         confirmationTokenService.setConfirmationTokenConfirmedAt(token);
-        userRepository.enableUser(user.getEmail(), Role.USER);
         emailService.sendEmail(user.getEmail(), "Welcome", EmailConstant.buildWelcomeEmail(user.getFirstName()));
     }
 
     @Override
     public List<User> getUsers() {
         return userRepository.findAll();
-    }
-
-    @Override
-    public Optional<User> findUserByDisplayName(String displayName) {
-        return userRepository.findUserByDisplayName(displayName);
     }
 
     @Override
@@ -157,15 +152,12 @@ public class UserServiceImpl implements UserService {
                 .findUserByEmail(email)
                 .orElseThrow(() -> new UserNotFoundException("User with email " + email + " cannot be found"));
 
-        PasswordResetToken passwordResetToken = new PasswordResetToken(
-                LocalDateTime.now(),
-                LocalDateTime.now().plusMinutes(15),
-                user
-        );
+        if (!passwordResetTokenService.isAllowedToRequestPasswordResetToken(email))
+            throw new TokenRequestNotAllowedException("The user with email " + email + " is not allowed to create another password reset token at the moment. Try again later");
 
-        passwordResetTokenService.savePasswordResetToken(passwordResetToken);
-        String link = ServletUriComponentsBuilder.fromCurrentContextPath().toUriString() + "/api/v1/user/resetPassword?token=" + passwordResetToken.getToken();
-        emailService.sendEmail(user.getEmail(), "Reset your password", EmailConstant.buildResetPasswordEmail(user.getFirstName(), link));
+        PasswordResetToken passwordResetToken = passwordResetTokenService.createPasswordResetTokenForUser(user);
+        String url = ServletUriComponentsBuilder.fromCurrentContextPath().toUriString() + "/api/v1/user/resetPassword?token=" + passwordResetToken.getToken();
+        emailService.sendEmail(user.getEmail(), "Reset your password", EmailConstant.buildResetPasswordEmail(user.getFirstName(), url));
     }
 
     @Override
@@ -193,25 +185,15 @@ public class UserServiceImpl implements UserService {
 
     @Override
     public void updateUserPassword(PasswordDto passwordDto, String token) {
-        String email = SecurityContextHolder
-                .getContext()
-                .getAuthentication()
-                .getPrincipal()
-                .toString();
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
         User user = userRepository
-                .findUserByEmail(email)
+                .findUserByEmail(authentication.getPrincipal().toString())
                 .orElseThrow(() -> new UserNotFoundException("User not found"));
+
         if (!isValidOldPassword(user, passwordDto.getOldPassword()))
             throw new InvalidPasswordException("Invalid old password");
 
         updateUserPassword(user, passwordDto.getNewPassword(), token);
-    }
-
-    @Override
-    public void updateUserPassword(User user, String password, String token) {
-        String encodedPassword = bCryptPasswordEncoder.encode(password + user.getSecret());
-        userRepository.updatePassword(user.getEmail(), encodedPassword);
-        incrementRefreshTokenCount(user);
     }
 
     private boolean isValidOldPassword(User user, String oldPassword) {
@@ -219,41 +201,54 @@ public class UserServiceImpl implements UserService {
     }
 
     @Override
-    public String generateUserQRUrl(User user) {
-        return "https://chart.googleapis.com/chart?chs=200x200&chld=M%%7C0&cht=qr&chl=" + URLEncoder.encode(String.format("otpauth://totp/%s:%s?secret=%s&issuer=%s", ISSUER, user.getEmail(), user.getSecret(), ISSUER), StandardCharsets.UTF_8);
+    public void updateUserPassword(User user, String password, String token) {
+        String encodedPassword = bCryptPasswordEncoder.encode(password + user.getSecret());
+        user.setPassword(encodedPassword);
+        incrementRefreshTokenCount(user);
     }
 
     @Override
-    public User updateUser2FA(boolean use2FA, String token) {
-        Authentication currentAuth = SecurityContextHolder.getContext().getAuthentication();
-        User user = findUserByEmail(currentAuth.getPrincipal().toString())
+    public String updateUser2FA(boolean use2FA, String token) {
+        Authentication currentAuthentication = SecurityContextHolder.getContext().getAuthentication();
+        User user = userRepository
+                .findUserByEmail(currentAuthentication.getPrincipal().toString())
                 .orElseThrow(() -> new InvalidAuthenticationException("Invalid authentication"));
-        userRepository.update2FA(user.getEmail(), use2FA);
-        Authentication auth = new UsernamePasswordAuthenticationToken(user, user.getPassword(), currentAuth.getAuthorities());
-        SecurityContextHolder.getContext().setAuthentication(auth);
-        if (use2FA) {
-            List<String> backupCodes = backupCodeService.createBackupCodes(user);
-            emailService.sendEmail(user.getEmail(), "2 FA Activated", EmailConstant.build2FAActivatedEmail(user.getFirstName(), backupCodes));
-        } else {
+
+        if (use2FA == user.isUsing2FA())
+            throw new Same2FAStateException(String.format("Same 2FA State (%s)", use2FA ? "Activated" : "Deactivated"));
+
+        user.setUsing2FA(use2FA);
+        Authentication authentication = new UsernamePasswordAuthenticationToken(
+                user,
+                user.getPassword(),
+                currentAuthentication.getAuthorities()
+        );
+        SecurityContextHolder.getContext().setAuthentication(authentication);
+
+        if (!use2FA) {
             backupCodeService.deleteBackupCodesFromUser(user);
+            incrementRefreshTokenCount(user);
+            return "2 FA deactivated";
         }
 
-        incrementRefreshTokenCount(user);
-        return user;
+        List<String> backupCodes = backupCodeService.createBackupCodes(user);
+        emailService.sendEmail(user.getEmail(), "2 FA Activated", EmailConstant.build2FAActivatedEmail(user.getFirstName(), backupCodes));
+        return "https://chart.googleapis.com/chart?chs=200x200&chld=M%%7C0&cht=qr&chl=" + URLEncoder.encode(String.format("otpauth://totp/%s:%s?secret=%s&issuer=%s", ISSUER, user.getEmail(), user.getSecret(), ISSUER), StandardCharsets.UTF_8);
     }
 
     @Override
     public void incrementRefreshTokenCount(User user) {
         int refreshTokenCount = user.getRefreshTokenCount();
         user.setRefreshTokenCount(++refreshTokenCount);
-        userRepository.save(user);
     }
 
     @Override
     public void logout() {
-        Authentication currentAuth = SecurityContextHolder.getContext().getAuthentication();
-        User user = findUserByEmail(currentAuth.getPrincipal().toString())
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        User user = userRepository
+                .findUserByEmail(authentication.getPrincipal().toString())
                 .orElseThrow(() -> new InvalidAuthenticationException("Invalid authentication"));
+
         incrementRefreshTokenCount(user);
         SecurityContextHolder.clearContext();
     }

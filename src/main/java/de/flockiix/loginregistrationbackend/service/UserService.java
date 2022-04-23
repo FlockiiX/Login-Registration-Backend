@@ -16,8 +16,6 @@ public interface UserService {
 
     List<User> getUsers();
 
-    Optional<User> findUserByDisplayName(String displayName);
-
     Optional<User> findUserByEmail(String email);
 
     void deleteUser(String email);
@@ -30,9 +28,7 @@ public interface UserService {
 
     void updateUserPassword(User user, String password, String token);
 
-    String generateUserQRUrl(User user);
-
-    User updateUser2FA(boolean use2FA, String token);
+    String updateUser2FA(boolean use2FA, String token);
 
     void incrementRefreshTokenCount(User user);
 

@@ -37,6 +37,13 @@ public class ConfirmationToken {
         this.user = user;
     }
 
+    public ConfirmationToken(LocalDateTime createdAt, LocalDateTime expiresAt, LocalDateTime confirmedAt, User user) {
+        this.createdAt = createdAt;
+        this.expiresAt = expiresAt;
+        this.confirmedAt = confirmedAt;
+        this.user = user;
+    }
+
     public ConfirmationToken() {
 
     }

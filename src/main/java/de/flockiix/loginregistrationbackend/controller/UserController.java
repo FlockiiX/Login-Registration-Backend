@@ -51,7 +51,7 @@ public class UserController extends ControllerAdvice {
     }
 
     @GetMapping("/resetPassword")
-    public ResponseEntity<HttpResponse> resetPassword(@RequestParam("email") String email) {
+    public ResponseEntity<HttpResponse> resetPasswordRequest(@RequestParam("email") String email) {
         userService.createPasswordResetToken(email);
         return response(OK, "Success");
     }
@@ -79,13 +79,11 @@ public class UserController extends ControllerAdvice {
 
     @PostMapping("/update2FA")
     @PreAuthorize("hasAuthority('verified')")
-    public ResponseEntity<HttpResponse> update2FA(@RequestParam("use2FA") boolean use2FA, HttpServletRequest request) {
-        User user = userService.updateUser2FA(
+    public ResponseEntity<HttpResponse> update2FA(@Valid @RequestParam("use2FA") boolean use2FA, HttpServletRequest request) {
+        return response(OK, userService.updateUser2FA(
                 use2FA,
                 getTokenFromRequest(request)
-        );
-
-        return response(OK, use2FA ? userService.generateUserQRUrl(user) : "2 FA deactivated");
+        ));
     }
 
     @GetMapping("/list")
@@ -110,12 +108,6 @@ public class UserController extends ControllerAdvice {
     public ResponseEntity<HttpResponse> deleteUser(@RequestParam("email") String email) {
         userService.deleteUser(email);
         return response(OK, "Entity deleted");
-    }
-
-    @GetMapping("/logout")
-    public ResponseEntity<?> logout() {
-        userService.logout();
-        return response(OK, "Logged out");
     }
 
     private String getTokenFromRequest(HttpServletRequest request) {

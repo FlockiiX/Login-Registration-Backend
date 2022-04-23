@@ -37,6 +37,13 @@ public class PasswordResetToken {
         this.user = user;
     }
 
+    public PasswordResetToken(LocalDateTime createdAt, LocalDateTime expiresAt, LocalDateTime confirmedAt, User user) {
+        this.createdAt = createdAt;
+        this.expiresAt = expiresAt;
+        this.confirmedAt = confirmedAt;
+        this.user = user;
+    }
+
     public PasswordResetToken() {
 
     }

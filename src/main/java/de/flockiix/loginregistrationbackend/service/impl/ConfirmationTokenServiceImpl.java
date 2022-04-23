@@ -1,16 +1,16 @@
 package de.flockiix.loginregistrationbackend.service.impl;
 
+import de.flockiix.loginregistrationbackend.exception.TokenNotFoundException;
 import de.flockiix.loginregistrationbackend.model.ConfirmationToken;
+import de.flockiix.loginregistrationbackend.model.User;
 import de.flockiix.loginregistrationbackend.repository.ConfirmationTokenRepository;
 import de.flockiix.loginregistrationbackend.service.ConfirmationTokenService;
 import org.springframework.stereotype.Service;
 
-import javax.transaction.Transactional;
 import java.time.LocalDateTime;
 import java.util.Optional;
 
 @Service
-@Transactional
 public class ConfirmationTokenServiceImpl implements ConfirmationTokenService {
     private final ConfirmationTokenRepository confirmationTokenRepository;
 
@@ -19,8 +19,12 @@ public class ConfirmationTokenServiceImpl implements ConfirmationTokenService {
     }
 
     @Override
-    public void saveConfirmationToken(ConfirmationToken confirmationToken) {
-        confirmationTokenRepository.save(confirmationToken);
+    public ConfirmationToken createConfirmationTokenForUser(User user) {
+        return confirmationTokenRepository.save(new ConfirmationToken(
+                LocalDateTime.now(),
+                LocalDateTime.now().plusMinutes(15),
+                user
+        ));
     }
 
     @Override
@@ -30,6 +34,9 @@ public class ConfirmationTokenServiceImpl implements ConfirmationTokenService {
 
     @Override
     public void setConfirmationTokenConfirmedAt(String token) {
-        confirmationTokenRepository.updateConfirmedAt(token, LocalDateTime.now());
+        ConfirmationToken confirmationToken = confirmationTokenRepository
+                .findConfirmationTokenByToken(token)
+                .orElseThrow(() -> new TokenNotFoundException("Token not found"));
+        confirmationToken.setConfirmedAt(LocalDateTime.now());
     }
 }

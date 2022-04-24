@@ -1,9 +1,9 @@
 version: '3.8'
 services:
   app:
-    image: 'flockiix/login-registration-backend'
     build:
       context: .
+      target: production
     container_name: app
     depends_on:
       - db
@@ -12,11 +12,15 @@ services:
       - SPRING_DATASOURCE_USERNAME=compose-postgres
       - SPRING_DATASOURCE_PASSWORD=compose-postgres
       - SPRING_JPA_HIBERNATE_DDL_AUTO=update
+      - SPRING_MAIL_HOST=maildev
     ports:
       - "8080:8080"
   db:
-    image: 'postgres:14.2'
+    image: 'postgres:latest'
     container_name: db
+    restart: always
+    ports:
+      - "5432:5432"
     environment:
       - POSTGRES_USER=compose-postgres
       - POSTGRES_PASSWORD=compose-postgres

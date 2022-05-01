@@ -15,4 +15,4 @@ jobs:
     steps:
     - uses: actions/checkout@v3
     - name: Build and run the docker-compose stack
-      run: docker-compose -f docker-compose-prod.yml up
+      run: sudo docker-compose -f docker-compose-prod.yml up

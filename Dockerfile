@@ -5,7 +5,7 @@ WORKDIR /app
 COPY .mvn/ .mvn
 COPY mvnw pom.xml ./
 COPY src ./src
-CMD ["chmod", "+x", "mvnw"]
+CMD ["chmod", "+x", "./mvnw"]
 
 FROM base as test
 CMD ["./mvnw", "test"]

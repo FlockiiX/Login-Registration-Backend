@@ -1,25 +1,13 @@
-FROM openjdk:17-jdk-alpine as base
-
+FROM maven:3.8.5-openjdk-17 AS base
 WORKDIR /app
+COPY . .
 
-COPY .mvn/ .mvn
-COPY mvnw pom.xml ./
-COPY src ./src
-CMD ["chmod", "+x", "./mvnw"]
+FROM base AS test
+RUN mvn test
 
-FROM base as test
-CMD ["./mvnw", "test"]
+FROM base AS build
+RUN ["mvn", "install", "-Dmaven.test.skip=true"]
 
-FROM base as build
-RUN ["./mvnw", "package"]
-
-FROM base as buildSkipTests
-RUN ["./mvnw", "package", "-Dmaven.test.skip=true"]
-
-FROM openjdk:17-jdk-alpine as production
+FROM openjdk:17-jdk-alpine AS execution
 COPY --from=build /app/target/login-registration-backend.jar login-registration-backend.jar
-ENTRYPOINT ["java","-jar","login-registration-backend.jar"]
-
-FROM openjdk:17-jdk-alpine as development
-COPY --from=buildSkipTests /app/target/login-registration-backend.jar login-registration-backend.jar
 ENTRYPOINT ["java","-jar","login-registration-backend.jar"]

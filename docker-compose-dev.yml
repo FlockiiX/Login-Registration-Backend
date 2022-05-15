@@ -3,7 +3,7 @@ services:
   app:
     build:
       context: .
-      target: development
+      target: execution
     container_name: app
     depends_on:
       - db

@@ -3,7 +3,7 @@ services:
   app:
     build:
       context: .
-      target: production
+      target: execution
     container_name: app
     depends_on:
       - db
@@ -12,7 +12,7 @@ services:
       - SPRING_DATASOURCE_USERNAME=compose-postgres
       - SPRING_DATASOURCE_PASSWORD=compose-postgres
       - SPRING_JPA_HIBERNATE_DDL_AUTO=update
-      - SPRING_MAIL_HOST=maildev
+      - SPRING_MAIL_HOST=
     ports:
       - "8080:8080"
   db:
@@ -24,7 +24,3 @@ services:
     environment:
       - POSTGRES_USER=compose-postgres
       - POSTGRES_PASSWORD=compose-postgres
-  maildev:
-    image: maildev/maildev
-    ports:
-      - "1080:1080"

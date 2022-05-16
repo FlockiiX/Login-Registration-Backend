@@ -1,4 +1,4 @@
-version: '3.8'
+version: '3.9'
 services:
   app:
     build:
@@ -7,11 +7,11 @@ services:
     container_name: app
     depends_on:
       - db
+      - maildev
     environment:
       - SPRING_DATASOURCE_URL=jdbc:postgresql://db:5432/compose-postgres
       - SPRING_DATASOURCE_USERNAME=compose-postgres
       - SPRING_DATASOURCE_PASSWORD=compose-postgres
-      - SPRING_JPA_HIBERNATE_DDL_AUTO=update
       - SPRING_MAIL_HOST=maildev
     ports:
       - "8080:8080"
@@ -21,6 +21,8 @@ services:
     restart: always
     ports:
       - "5432:5432"
+    volumes:
+      - db-data:/var/lib/postgresql/data
     environment:
       - POSTGRES_USER=compose-postgres
       - POSTGRES_PASSWORD=compose-postgres
@@ -28,3 +30,5 @@ services:
     image: maildev/maildev
     ports:
       - "1080:1080"
+volumes:
+  db-data:

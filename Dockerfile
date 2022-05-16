@@ -3,7 +3,7 @@ WORKDIR /app
 COPY . .
 
 FROM base AS test
-RUN mvn test
+CMD mvn test
 
 FROM base AS build
 RUN ["mvn", "install", "-Dmaven.test.skip=true"]

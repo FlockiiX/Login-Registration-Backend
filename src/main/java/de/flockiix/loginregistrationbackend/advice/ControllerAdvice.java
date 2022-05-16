@@ -38,7 +38,7 @@ public class ControllerAdvice {
 
     @ExceptionHandler(DeviceVerificationException.class)
     public ResponseEntity<HttpResponse> deviceVerificationException(DeviceVerificationException exception) {
-        return createHttpResponse(BAD_REQUEST, exception.getMessage());
+        return createHttpResponse(OK, exception.getMessage());
     }
 
     @ExceptionHandler(DisplayNameExistException.class)

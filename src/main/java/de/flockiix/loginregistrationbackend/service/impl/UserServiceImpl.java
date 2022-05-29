@@ -141,7 +141,7 @@ public class UserServiceImpl implements UserService {
     public void deleteUser(String email) {
         User user = userRepository
                 .findUserByEmail(email)
-                .orElseThrow(() -> new UserNotFoundException("User with email " + email + " cannot be found"));
+                .orElseThrow(() -> new UserNotFoundException(String.format("User with email %s cannot be found", email)));
 
         userRepository.delete(user);
     }
@@ -150,10 +150,10 @@ public class UserServiceImpl implements UserService {
     public void createPasswordResetToken(String email) {
         User user = userRepository
                 .findUserByEmail(email)
-                .orElseThrow(() -> new UserNotFoundException("User with email " + email + " cannot be found"));
+                .orElseThrow(() -> new UserNotFoundException(String.format("User with email %s cannot be found", email)));
 
         if (!passwordResetTokenService.isAllowedToRequestPasswordResetToken(email))
-            throw new TokenRequestNotAllowedException("The user with email " + email + " is not allowed to create another password reset token at the moment. Try again later");
+            throw new TokenRequestNotAllowedException(String.format("The user with email %s is not allowed to create another password reset token at the moment. Try again later", email));
 
         PasswordResetToken passwordResetToken = passwordResetTokenService.createPasswordResetTokenForUser(user);
         String url = ServletUriComponentsBuilder.fromCurrentContextPath().toUriString() + "/api/v1/user/resetPassword?token=" + passwordResetToken.getToken();

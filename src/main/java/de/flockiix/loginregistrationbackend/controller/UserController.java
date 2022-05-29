@@ -98,7 +98,7 @@ public class UserController extends ControllerAdvice {
     public ResponseEntity<User> findUser(@RequestParam("email") String email) {
         User user = userService
                 .findUserByEmail(email)
-                .orElseThrow(() -> new UserNotFoundException("User with email " + email + " cannot be found"));
+                .orElseThrow(() -> new UserNotFoundException(String.format("User with email %s cannot be found", email)));
 
         return new ResponseEntity<>(user, OK);
     }

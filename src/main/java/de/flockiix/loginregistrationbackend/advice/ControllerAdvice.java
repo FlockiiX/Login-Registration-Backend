@@ -31,14 +31,14 @@ import static org.springframework.http.HttpStatus.*;
 public class ControllerAdvice {
     private static final Logger LOGGER = LoggerFactory.getLogger(ControllerAdvice.class);
 
-    @ExceptionHandler(EmailNotVerifiedException.class)
-    public ResponseEntity<HttpResponse> emailNotVerifiedException(EmailNotVerifiedException exception) {
+    @ExceptionHandler(DeviceVerificationException.class)
+    public ResponseEntity<HttpResponse> deviceVerificationException(DeviceVerificationException exception) {
         return createHttpResponse(BAD_REQUEST, exception.getMessage());
     }
 
-    @ExceptionHandler(DeviceVerificationException.class)
-    public ResponseEntity<HttpResponse> deviceVerificationException(DeviceVerificationException exception) {
-        return createHttpResponse(OK, exception.getMessage());
+    @ExceptionHandler(EmailNotVerifiedException.class)
+    public ResponseEntity<HttpResponse> emailNotVerifiedException(EmailNotVerifiedException exception) {
+        return createHttpResponse(BAD_REQUEST, exception.getMessage());
     }
 
     @ExceptionHandler(DisplayNameExistException.class)
@@ -116,6 +116,7 @@ public class ControllerAdvice {
     public ResponseEntity<HttpResponse> same2FAStateException(Same2FAStateException exception) {
         return createHttpResponse(BAD_REQUEST, exception.getMessage());
     }
+
     @ExceptionHandler(AccessDeniedException.class)
     public ResponseEntity<HttpResponse> accessDeniedException() {
         return createHttpResponse(FORBIDDEN, "You do not have enough permission");
@@ -160,7 +161,7 @@ public class ControllerAdvice {
 
     @ExceptionHandler(MissingServletRequestParameterException.class)
     public ResponseEntity<HttpResponse> missingServletRequestParameterException(MissingServletRequestParameterException exception) {
-        return createHttpResponse(BAD_REQUEST, "Missing: " + exception.getParameterName());
+        return createHttpResponse(BAD_REQUEST, String.format("Missing: %s", exception.getParameterName()));
     }
 
     @ExceptionHandler(NoResultException.class)

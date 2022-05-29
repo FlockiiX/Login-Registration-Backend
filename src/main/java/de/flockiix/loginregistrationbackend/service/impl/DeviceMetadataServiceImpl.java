@@ -65,7 +65,7 @@ public class DeviceMetadataServiceImpl implements DeviceMetadataService {
 
             deviceMetadataRepository.save(metadata);
         } catch (Exception exception) {
-            throw new DeviceVerificationException("Failed to verify Device");
+            throw new DeviceVerificationException("Failed to verify device");
         }
     }
 

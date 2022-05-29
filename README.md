@@ -11,8 +11,7 @@ All commands in this section assume that you have installed `docker` and `docker
 Run the command `docker-compose -f docker-compose-test.yml up --build` at the project root to run the tests of this project.
 
 ### Deploying stages
-Deploying onto your development server:
-Run the command `docker-compose -f [STAGE] up --build` at the project root to run the application on your development server.
+Run the command `docker-compose -f [STAGE] up --build` at the project root to run the application.
 
 Current stages:
 1. development `[docker-compose-dev.yml]`

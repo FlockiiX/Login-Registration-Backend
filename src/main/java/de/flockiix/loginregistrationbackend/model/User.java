@@ -71,6 +71,14 @@ public class User {
         this.isEmailVerified = isEmailVerified;
     }
 
+    public User(String firstName, String lastName, String displayName, String email, String password) {
+        this.firstName = firstName;
+        this.lastName = lastName;
+        this.displayName = displayName;
+        this.email = email;
+        this.password = password;
+    }
+
     public User() {
 
     }

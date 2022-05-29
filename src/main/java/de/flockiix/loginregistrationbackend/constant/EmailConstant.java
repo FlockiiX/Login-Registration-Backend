@@ -4,26 +4,26 @@ import java.util.List;
 
 public class EmailConstant {
     public static String buildAccountLockedEmail(String firstName) {
-        return "Bad News " + firstName + "!\n\nYour account has been locked.";
+        return String.format("Bad News %s!\n\nYour account has been locked.", firstName);
     }
 
     public static String buildConfirmEmail(String firstName, String link) {
-        return "Confirm your account, " + firstName + "\n\n <a href=\"" + link + "\">Confirm Account</a>";
+        return String.format("Confirm your account, %s\n\n <a href=\"%s\">Confirm Account</a>", firstName, link);
     }
 
     public static String buildWelcomeEmail(String firstName) {
-        return "Welcome, " + firstName;
+        return String.format("Welcome, %s", firstName);
     }
 
     public static String buildSafetyWarningEmail(String firstName) {
-        return "Bad news " + firstName + "! We have detected suspicious login attempts on your account!";
+        return String.format("Bad news %s! We have detected suspicious login attempts on your account!", firstName);
     }
 
     public static String buildResetPasswordEmail(String firstName, String link) {
-        return "Reset your password, " + firstName + ".\n\n <a href=\"" + link + "\">Reset Password</a>";
+        return String.format("Reset your password, %s.\n\n <a href=\"%s\">Reset Password</a>", firstName, link);
     }
 
     public static String build2FAActivatedEmail(String firstName, List<String> backupCodes) {
-        return "Activated 2 fa, " + firstName + ". Your codes: " + backupCodes;
+        return String.format("Activated 2 fa, %s. Your codes: %s", firstName, backupCodes);
     }
 }

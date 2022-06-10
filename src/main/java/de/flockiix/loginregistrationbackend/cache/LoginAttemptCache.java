@@ -94,7 +94,7 @@ public class LoginAttemptCache {
             sendEmail(user.getEmail(), "Safety warning", EmailConstant.buildSafetyWarningEmail(user.getFirstName()));
 
         if (isBlocked(user.getEmail())) {
-            sendEmail(user.getEmail(), "User Management Security", EmailConstant.buildAccountLockedEmail(user.getFirstName()));
+            sendEmail(user.getEmail(), "Account Security", EmailConstant.buildAccountLockedEmail(user.getFirstName()));
             user.setActive(false);
         }
     }

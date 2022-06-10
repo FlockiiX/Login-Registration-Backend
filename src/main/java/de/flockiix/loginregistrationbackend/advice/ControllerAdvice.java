@@ -31,11 +31,6 @@ import static org.springframework.http.HttpStatus.*;
 public class ControllerAdvice {
     private static final Logger LOGGER = LoggerFactory.getLogger(ControllerAdvice.class);
 
-    @ExceptionHandler(DeviceVerificationException.class)
-    public ResponseEntity<HttpResponse> deviceVerificationException(DeviceVerificationException exception) {
-        return createHttpResponse(BAD_REQUEST, exception.getMessage());
-    }
-
     @ExceptionHandler(EmailNotVerifiedException.class)
     public ResponseEntity<HttpResponse> emailNotVerifiedException(EmailNotVerifiedException exception) {
         return createHttpResponse(BAD_REQUEST, exception.getMessage());

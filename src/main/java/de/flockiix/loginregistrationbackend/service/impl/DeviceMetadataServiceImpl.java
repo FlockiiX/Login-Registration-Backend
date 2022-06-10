@@ -2,10 +2,8 @@ package de.flockiix.loginregistrationbackend.service.impl;
 
 import com.google.common.base.Strings;
 import com.maxmind.geoip2.DatabaseReader;
-import com.maxmind.geoip2.exception.GeoIp2Exception;
 import com.maxmind.geoip2.model.CityResponse;
 import de.flockiix.loginregistrationbackend.constant.EmailConstant;
-import de.flockiix.loginregistrationbackend.exception.DeviceVerificationException;
 import de.flockiix.loginregistrationbackend.model.DeviceMetadata;
 import de.flockiix.loginregistrationbackend.model.User;
 import de.flockiix.loginregistrationbackend.repository.DeviceMetadataRepository;
@@ -19,7 +17,6 @@ import ua_parser.Client;
 import ua_parser.Parser;
 
 import javax.servlet.http.HttpServletRequest;
-import java.io.IOException;
 import java.net.InetAddress;
 import java.util.Date;
 import java.util.List;
@@ -41,32 +38,28 @@ public class DeviceMetadataServiceImpl implements DeviceMetadataService {
 
     @Override
     public void verifyDevice(User user, HttpServletRequest request) {
-        try {
-            var ip = Utils.getClientIpAddress(request);
-            var location = getIpLocation(ip);
-            var deviceDetails = getDeviceDetails(request.getHeader("User-Agent"));
-            var existingDevice = findExistingDevice(user, deviceDetails, location);
-            var devices = findExistingDevices(user);
+        var ip = Utils.getClientIpAddress(request);
+        var location = getIpLocation(ip);
+        var deviceDetails = getDeviceDetails(request.getHeader("User-Agent"));
+        var existingDevice = findExistingDevice(user, deviceDetails, location);
+        var devices = findExistingDevices(user);
 
-            if (existingDevice != null) {
-                existingDevice.setLastLoggedIn(new Date());
-                return;
-            }
-
-            if (devices != 0)
-                emailService.sendEmail(user.getEmail(), "New device", EmailConstant.buildSafetyWarningEmail(user.getFirstName()));
-
-            DeviceMetadata metadata = new DeviceMetadata(
-                    ip,
-                    deviceDetails,
-                    location,
-                    user
-            );
-
-            deviceMetadataRepository.save(metadata);
-        } catch (Exception exception) {
-            throw new DeviceVerificationException("Failed to verify device");
+        if (existingDevice != null) {
+            existingDevice.setLastLoggedIn(new Date());
+            return;
         }
+
+        if (devices != 0)
+            emailService.sendEmail(user.getEmail(), "New device", EmailConstant.buildSafetyWarningEmail(user.getFirstName()));
+
+        DeviceMetadata metadata = new DeviceMetadata(
+                ip,
+                deviceDetails,
+                location,
+                user
+        );
+
+        deviceMetadataRepository.save(metadata);
     }
 
     private String getDeviceDetails(String userAgent) {
@@ -78,14 +71,18 @@ public class DeviceMetadataServiceImpl implements DeviceMetadataService {
         return deviceDetails;
     }
 
-    private String getIpLocation(String ip) throws IOException, GeoIp2Exception {
-        String location = "UNKNOWN";
-        InetAddress ipAddress = InetAddress.getByName(ip);
-        CityResponse cityResponse = databaseReader.city(ipAddress);
-        if (cityResponse != null && cityResponse.getCity() != null && !Strings.isNullOrEmpty(cityResponse.getCity().getName()))
-            location = cityResponse.getCity().getName();
+    private String getIpLocation(String ip) {
+        try {
+            String location = "UNKNOWN";
+            InetAddress ipAddress = InetAddress.getByName(ip);
+            CityResponse cityResponse = databaseReader.city(ipAddress);
+            if (cityResponse != null && cityResponse.getCity() != null && !Strings.isNullOrEmpty(cityResponse.getCity().getName()))
+                location = cityResponse.getCity().getName();
 
-        return location;
+            return location;
+        } catch (Exception exception) {
+            return "UNKNOWN";
+        }
     }
 
     private DeviceMetadata findExistingDevice(User user, String deviceDetails, String location) {

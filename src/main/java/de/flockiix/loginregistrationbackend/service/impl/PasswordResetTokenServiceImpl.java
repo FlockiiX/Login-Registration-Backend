@@ -44,7 +44,7 @@ public class PasswordResetTokenServiceImpl implements PasswordResetTokenService 
     @Override
     public boolean isAllowedToRequestPasswordResetToken(String email) {
         List<PasswordResetToken> resetTokenList = passwordResetTokenRepository.findPasswordResetTokensByUserEmail(email);
-        if (resetTokenList.isEmpty())
+        if (resetTokenList == null || resetTokenList.isEmpty())
             return true;
 
         return resetTokenList.get(0).getCreatedAt().isBefore(LocalDateTime.now().minusDays(7));

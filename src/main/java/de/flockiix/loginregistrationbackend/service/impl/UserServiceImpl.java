@@ -11,6 +11,7 @@ import de.flockiix.loginregistrationbackend.model.PasswordResetToken;
 import de.flockiix.loginregistrationbackend.model.User;
 import de.flockiix.loginregistrationbackend.repository.UserRepository;
 import de.flockiix.loginregistrationbackend.service.*;
+import de.flockiix.loginregistrationbackend.util.Utils;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.LockedException;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
@@ -19,6 +20,8 @@ import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.web.context.request.RequestContextHolder;
+import org.springframework.web.context.request.ServletRequestAttributes;
 import org.springframework.web.servlet.support.ServletUriComponentsBuilder;
 
 import javax.servlet.http.HttpServletRequest;
@@ -27,6 +30,7 @@ import java.nio.charset.StandardCharsets;
 import java.time.LocalDateTime;
 import java.util.Date;
 import java.util.List;
+import java.util.Objects;
 import java.util.Optional;
 
 import static de.flockiix.loginregistrationbackend.constant.JwtConstant.ISSUER;
@@ -56,7 +60,8 @@ public class UserServiceImpl implements UserService {
 
     @Override
     @Transactional(noRollbackFor = LockedException.class)
-    public User login(String email, String password, HttpServletRequest request) {
+    public User login(String email, String password) {
+        HttpServletRequest request = ((ServletRequestAttributes) Objects.requireNonNull(RequestContextHolder.getRequestAttributes())).getRequest();
         User user = userRepository
                 .findUserByEmail(email)
                 .orElseThrow(() -> new UserNotFoundException("Wrong email or password"));
@@ -70,7 +75,7 @@ public class UserServiceImpl implements UserService {
         );
 
         authenticationManager.authenticate(token);
-        deviceMetadataService.verifyDevice(user, request);
+        deviceMetadataService.verifyDevice(user, Utils.getClientIpAddress(request), request.getHeader("User-Agent"));
         return user;
     }
 
@@ -180,11 +185,11 @@ public class UserServiceImpl implements UserService {
             throw new UserNotFoundException("User not found");
 
         passwordResetTokenService.setPasswordResetTokenConfirmedAt(token);
-        updateUserPassword(user, password, null);
+        updateUserPassword(user, password);
     }
 
     @Override
-    public void updateUserPassword(PasswordDto passwordDto, String token) {
+    public void updateUserPassword(PasswordDto passwordDto) {
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
         User user = userRepository
                 .findUserByEmail(authentication.getPrincipal().toString())
@@ -193,22 +198,22 @@ public class UserServiceImpl implements UserService {
         if (!isValidOldPassword(user, passwordDto.getOldPassword()))
             throw new InvalidPasswordException("Invalid old password");
 
-        updateUserPassword(user, passwordDto.getNewPassword(), token);
+        updateUserPassword(user, passwordDto.getNewPassword());
     }
 
     private boolean isValidOldPassword(User user, String oldPassword) {
         return bCryptPasswordEncoder.matches(oldPassword + user.getSecret(), user.getPassword());
     }
 
-    @Override
-    public void updateUserPassword(User user, String password, String token) {
+    private void updateUserPassword(User user, String password) {
         String encodedPassword = bCryptPasswordEncoder.encode(password + user.getSecret());
         user.setPassword(encodedPassword);
         incrementRefreshTokenCount(user);
+        emailService.sendEmail(user.getEmail(), "Updated your password", EmailConstant.buildPasswordUpdatedEmail(user.getFirstName()));
     }
 
     @Override
-    public String updateUser2FA(boolean use2FA, String token) {
+    public String updateUser2FA(boolean use2FA) {
         Authentication currentAuthentication = SecurityContextHolder.getContext().getAuthentication();
         User user = userRepository
                 .findUserByEmail(currentAuthentication.getPrincipal().toString())

@@ -3,12 +3,11 @@ package de.flockiix.loginregistrationbackend.service;
 import de.flockiix.loginregistrationbackend.dto.PasswordDto;
 import de.flockiix.loginregistrationbackend.model.User;
 
-import javax.servlet.http.HttpServletRequest;
 import java.util.List;
 import java.util.Optional;
 
 public interface UserService {
-    User login(String email, String password, HttpServletRequest request);
+    User login(String email, String password);
 
     void register(String firstName, String lastName, String displayName, String email, String password);
 
@@ -24,11 +23,9 @@ public interface UserService {
 
     void resetUserPassword(String token, String password);
 
-    void updateUserPassword(PasswordDto passwordDto, String token);
+    void updateUserPassword(PasswordDto passwordDto);
 
-    void updateUserPassword(User user, String password, String token);
-
-    String updateUser2FA(boolean use2FA, String token);
+    String updateUser2FA(boolean use2FA);
 
     void incrementRefreshTokenCount(User user);
 

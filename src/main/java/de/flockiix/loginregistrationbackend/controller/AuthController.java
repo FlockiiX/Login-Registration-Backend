@@ -13,7 +13,6 @@ import org.springframework.http.ResponseCookie;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
-import javax.servlet.http.HttpServletRequest;
 import java.util.concurrent.TimeUnit;
 
 import static org.springframework.http.HttpStatus.OK;
@@ -32,8 +31,8 @@ public class AuthController extends ControllerAdvice {
     }
 
     @PostMapping("/login")
-    public ResponseEntity<User> login(@RequestBody User user, HttpServletRequest request) {
-        User loginUser = userService.login(user.getEmail(), user.getPassword(), request);
+    public ResponseEntity<User> login(@RequestBody User user) {
+        User loginUser = userService.login(user.getEmail(), user.getPassword());
         HttpHeaders jwtHeader = getJwtHeader(loginUser, jwtTokenProvider.generateJwtRefreshToken(loginUser));
         return new ResponseEntity<>(loginUser, jwtHeader, HttpStatus.OK);
     }

@@ -12,11 +12,9 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
-import javax.servlet.http.HttpServletRequest;
 import javax.validation.Valid;
 import java.util.List;
 
-import static org.springframework.http.HttpHeaders.AUTHORIZATION;
 import static org.springframework.http.HttpStatus.OK;
 
 @RestController
@@ -68,22 +66,16 @@ public class UserController extends ControllerAdvice {
 
     @PostMapping("/updatePassword")
     @PreAuthorize("hasAuthority('verified')")
-    public ResponseEntity<HttpResponse> updatePassword(@Valid @RequestBody PasswordDto passwordDto, HttpServletRequest request) {
-        userService.updateUserPassword(
-                passwordDto,
-                getTokenFromRequest(request)
-        );
+    public ResponseEntity<HttpResponse> updatePassword(@Valid @RequestBody PasswordDto passwordDto) {
+        userService.updateUserPassword(passwordDto);
 
         return response(OK, "Password changed");
     }
 
     @PostMapping("/update2FA")
     @PreAuthorize("hasAuthority('verified')")
-    public ResponseEntity<HttpResponse> update2FA(@Valid @RequestParam("use2FA") boolean use2FA, HttpServletRequest request) {
-        return response(OK, userService.updateUser2FA(
-                use2FA,
-                getTokenFromRequest(request)
-        ));
+    public ResponseEntity<HttpResponse> update2FA(@Valid @RequestParam("use2FA") boolean use2FA) {
+        return response(OK, userService.updateUser2FA(use2FA));
     }
 
     @GetMapping("/list")
@@ -108,11 +100,6 @@ public class UserController extends ControllerAdvice {
     public ResponseEntity<HttpResponse> deleteUser(@RequestParam("email") String email) {
         userService.deleteUser(email);
         return response(OK, "Entity deleted");
-    }
-
-    private String getTokenFromRequest(HttpServletRequest request) {
-        String authorizationHeader = request.getHeader(AUTHORIZATION);
-        return authorizationHeader.substring(jwtProperties.getPrefix().length() + 1);
     }
 
     private ResponseEntity<HttpResponse> response(HttpStatus httpStatus, String message) {

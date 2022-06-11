@@ -13,6 +13,7 @@ import de.flockiix.loginregistrationbackend.repository.PasswordResetTokenReposit
 import de.flockiix.loginregistrationbackend.repository.UserRepository;
 import de.flockiix.loginregistrationbackend.service.EmailService;
 import org.junit.jupiter.api.BeforeAll;
+import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.TestInstance;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -415,6 +416,7 @@ class UserControllerTest {
     }
 
     @Test
+    @Disabled("Disabled until the test has been written!")
     void getUsers() throws Exception {
         //TODO: Write this test
     }

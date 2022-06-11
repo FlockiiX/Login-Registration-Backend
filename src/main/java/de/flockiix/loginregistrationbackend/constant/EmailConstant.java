@@ -26,4 +26,8 @@ public class EmailConstant {
     public static String build2FAActivatedEmail(String firstName, List<String> backupCodes) {
         return String.format("Activated 2 fa, %s. Your codes: %s", firstName, backupCodes);
     }
+
+    public static String buildPasswordUpdatedEmail(String firstName) {
+        return String.format("Updated your password, %s", firstName);
+    }
 }

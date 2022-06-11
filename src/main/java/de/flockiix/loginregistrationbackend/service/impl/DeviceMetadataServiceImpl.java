@@ -9,14 +9,12 @@ import de.flockiix.loginregistrationbackend.model.User;
 import de.flockiix.loginregistrationbackend.repository.DeviceMetadataRepository;
 import de.flockiix.loginregistrationbackend.service.DeviceMetadataService;
 import de.flockiix.loginregistrationbackend.service.EmailService;
-import de.flockiix.loginregistrationbackend.util.Utils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Service;
 import ua_parser.Client;
 import ua_parser.Parser;
 
-import javax.servlet.http.HttpServletRequest;
 import java.net.InetAddress;
 import java.util.Date;
 import java.util.List;
@@ -37,10 +35,9 @@ public class DeviceMetadataServiceImpl implements DeviceMetadataService {
     }
 
     @Override
-    public void verifyDevice(User user, HttpServletRequest request) {
-        var ip = Utils.getClientIpAddress(request);
+    public void verifyDevice(User user, String ip, String userAgent) {
         var location = getIpLocation(ip);
-        var deviceDetails = getDeviceDetails(request.getHeader("User-Agent"));
+        var deviceDetails = getDeviceDetails(userAgent);
         var existingDevice = findExistingDevice(user, deviceDetails, location);
         var devices = findExistingDevices(user);
 

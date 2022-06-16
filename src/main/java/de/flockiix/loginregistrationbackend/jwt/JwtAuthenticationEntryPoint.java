@@ -16,7 +16,7 @@ import static org.springframework.http.HttpStatus.FORBIDDEN;
 public class JwtAuthenticationEntryPoint extends Http403ForbiddenEntryPoint {
     @Override
     public void commence(HttpServletRequest request, HttpServletResponse response, AuthenticationException exception) throws IOException {
-        HttpResponse httpResponse = Utils.buildHttpResponse(FORBIDDEN, "You need to log in to access this page");
+        HttpResponse httpResponse = Utils.buildHttpResponse(FORBIDDEN, "Rejecting access. You have insufficient rights to access this endpoint.");
         Utils.handleResponse(httpResponse, response);
     }
 }

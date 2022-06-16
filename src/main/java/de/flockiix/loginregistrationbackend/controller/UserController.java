@@ -1,7 +1,6 @@
 package de.flockiix.loginregistrationbackend.controller;
 
 import de.flockiix.loginregistrationbackend.advice.ControllerAdvice;
-import de.flockiix.loginregistrationbackend.config.properties.JwtProperties;
 import de.flockiix.loginregistrationbackend.dto.PasswordDto;
 import de.flockiix.loginregistrationbackend.exception.UserNotFoundException;
 import de.flockiix.loginregistrationbackend.model.HttpResponse;
@@ -21,11 +20,9 @@ import static org.springframework.http.HttpStatus.OK;
 @RequestMapping("/api/v1/user")
 public class UserController extends ControllerAdvice {
     private final UserService userService;
-    private final JwtProperties jwtProperties;
 
-    public UserController(UserService userService, JwtProperties jwtProperties) {
+    public UserController(UserService userService) {
         this.userService = userService;
-        this.jwtProperties = jwtProperties;
     }
 
     @PostMapping("/register")

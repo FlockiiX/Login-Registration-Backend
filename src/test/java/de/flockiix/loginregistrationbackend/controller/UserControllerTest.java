@@ -7,13 +7,11 @@ import de.flockiix.loginregistrationbackend.exception.EmailSendFailedException;
 import de.flockiix.loginregistrationbackend.jwt.JwtTokenProvider;
 import de.flockiix.loginregistrationbackend.model.ConfirmationToken;
 import de.flockiix.loginregistrationbackend.model.PasswordResetToken;
-import de.flockiix.loginregistrationbackend.repository.BackupCodeRepository;
-import de.flockiix.loginregistrationbackend.repository.ConfirmationTokenRepository;
-import de.flockiix.loginregistrationbackend.repository.PasswordResetTokenRepository;
-import de.flockiix.loginregistrationbackend.repository.UserRepository;
+import de.flockiix.loginregistrationbackend.model.User;
+import de.flockiix.loginregistrationbackend.repository.*;
 import de.flockiix.loginregistrationbackend.service.EmailService;
+import de.flockiix.loginregistrationbackend.util.TestUtils;
 import org.junit.jupiter.api.BeforeAll;
-import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.TestInstance;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -26,6 +24,8 @@ import org.springframework.test.context.TestPropertySource;
 import org.springframework.test.web.servlet.MockMvc;
 
 import java.time.LocalDateTime;
+import java.util.ArrayList;
+import java.util.List;
 
 import static de.flockiix.loginregistrationbackend.util.TestUtils.*;
 import static org.assertj.core.api.Assertions.assertThat;
@@ -57,6 +57,8 @@ class UserControllerTest {
     private JwtTokenProvider jwtTokenProvider;
     @Autowired
     private BackupCodeRepository backupCodeRepository;
+    @Autowired
+    private DeviceMetadataRepository deviceMetadataRepository;
 
     @BeforeAll
     void beforeAll() throws EmailSendFailedException {
@@ -307,19 +309,6 @@ class UserControllerTest {
     }
 
     @Test
-    void resetPasswordWithInvalidToken() throws Exception {
-        var newPassword = getStrongPassword();
-        mockMvc.perform(
-                        post("/api/v1/user/resetPassword?token=foo")
-                                .contentType(MediaType.APPLICATION_JSON)
-                                .content(objectMapper.writeValueAsString(new PasswordDto(null, newPassword)))
-                                .headers(getFakeHeaders())
-                )
-                .andDo(print())
-                .andExpect(status().isBadRequest());
-    }
-
-    @Test
     void updatePassword() throws Exception {
         var userPayload = getUserPayload();
         var newPassword = getStrongPassword();
@@ -416,9 +405,32 @@ class UserControllerTest {
     }
 
     @Test
-    @Disabled("Disabled until the test has been written!")
     void getUsers() throws Exception {
-        //TODO: Write this test
+        confirmationTokenRepository.deleteAll();
+        backupCodeRepository.deleteAll();
+        passwordResetTokenRepository.deleteAll();
+        deviceMetadataRepository.deleteAll();
+        userRepository.deleteAll();
+        List<User> expected = new ArrayList<>();
+        for (int i = 0; i < 2; i++) {
+            expected.add(userRepository.save(TestUtils.getVerifiedUser(TestUtils.getUserPayload())));
+        }
+
+        var user = getVerifiedUser(getUserPayload());
+        user.setRole(Role.SUPER_USER);
+        userRepository.save(user);
+        expected.add(user);
+        var accessToken = jwtTokenProvider.generateJwtAccessToken(user);
+        String actual = mockMvc.perform(
+                        get("/api/v1/user/list")
+                                .headers(getFakeHeaders())
+                                .header(HttpHeaders.AUTHORIZATION, "Bearer " + accessToken)
+                )
+                .andDo(print())
+                .andExpect(status().isOk())
+                .andReturn().getResponse().getContentAsString();
+
+        assertThat(actual).contains(objectMapper.writeValueAsString(expected));
     }
 
     @Test

@@ -52,9 +52,21 @@ class PasswordResetTokenServiceTest {
     }
 
     @Test
+    void setPasswordResetTokenConfirmedAt() {
+        PasswordResetToken passwordResetToken = new PasswordResetToken(LocalDateTime.now(), LocalDateTime.now(), TestUtils.getUser());
+        given(passwordResetTokenRepository.findPasswordResetTokenByToken(passwordResetToken.getToken())).willReturn(Optional.of(passwordResetToken));
+        passwordResetTokenService.setPasswordResetTokenConfirmedAt(passwordResetToken.getToken());
+        ArgumentCaptor<PasswordResetToken> argumentCaptor = ArgumentCaptor.forClass(PasswordResetToken.class);
+        verify(passwordResetTokenRepository).save(argumentCaptor.capture());
+        PasswordResetToken capturedToken = argumentCaptor.getValue();
+        assertThat(capturedToken.getConfirmedAt()).isNotNull();
+    }
+
+    @Test
     void isAllowedToRequestPasswordResetToken() {
         User user = TestUtils.getUser();
         given(passwordResetTokenRepository.findPasswordResetTokensByUserEmail(user.getEmail())).willReturn(null);
         assertThat(passwordResetTokenService.isAllowedToRequestPasswordResetToken(user.getEmail())).isTrue();
     }
+
 }

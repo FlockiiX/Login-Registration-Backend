@@ -50,4 +50,15 @@ class ConfirmationTokenServiceTest {
         Optional<ConfirmationToken> actual = confirmationTokenService.getConfirmationTokenByToken(confirmationToken.getToken());
         assertThat(actual.get()).isEqualTo(confirmationToken);
     }
+
+    @Test
+    void setConfirmationTokenConfirmedAt() {
+        ConfirmationToken confirmationToken = new ConfirmationToken(LocalDateTime.now(), LocalDateTime.now(), TestUtils.getUser());
+        given(confirmationTokenRepository.findConfirmationTokenByToken(confirmationToken.getToken())).willReturn(Optional.of(confirmationToken));
+        confirmationTokenService.setConfirmationTokenConfirmedAt(confirmationToken.getToken());
+        ArgumentCaptor<ConfirmationToken> argumentCaptor = ArgumentCaptor.forClass(ConfirmationToken.class);
+        verify(confirmationTokenRepository).save(argumentCaptor.capture());
+        ConfirmationToken capturedToken = argumentCaptor.getValue();
+        assertThat(capturedToken.getConfirmedAt()).isNotNull();
+    }
 }

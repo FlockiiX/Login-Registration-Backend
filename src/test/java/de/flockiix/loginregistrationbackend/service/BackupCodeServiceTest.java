@@ -8,6 +8,7 @@ import de.flockiix.loginregistrationbackend.util.TestUtils;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.ArgumentCaptor;
 import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
 import org.mockito.junit.jupiter.MockitoExtension;
@@ -37,18 +38,39 @@ class BackupCodeServiceTest {
     @Test
     void getBackupCodesByUser() {
         User user = TestUtils.getUser();
-        List<BackupCode> backupCodes = List.of(new BackupCode("123456", user), new BackupCode("111111", user), new BackupCode("654321", user), new BackupCode("1234", user));
-        given(backupCodeRepository.findBackupCodesByUser(user)).willReturn(backupCodes);
+        List<BackupCode> expected = List.of(
+                new BackupCode("123456", user),
+                new BackupCode("111111", user),
+                new BackupCode("654321", user),
+                new BackupCode("1234", user)
+        );
+        given(backupCodeRepository.findBackupCodesByUser(user)).willReturn(expected);
         List<BackupCode> actual = backupCodeService.getBackupCodesByUser(user);
-        assertThat(actual).isEqualTo(backupCodes);
+        assertThat(actual).isEqualTo(expected);
     }
 
     @Test
     void deleteBackupCodesFromUser() {
         User user = TestUtils.getUser();
-        List<BackupCode> backupCodes = List.of(new BackupCode("123456", user), new BackupCode("111111", user), new BackupCode("654321", user), new BackupCode("1234", user));
+        List<BackupCode> backupCodes = List.of(
+                new BackupCode("123456", user),
+                new BackupCode("111111", user),
+                new BackupCode("654321", user),
+                new BackupCode("1234", user)
+        );
         given(backupCodeRepository.findBackupCodesByUser(user)).willReturn(backupCodes);
         backupCodeService.deleteBackupCodesFromUser(user);
         verify(backupCodeRepository).deleteAll(backupCodes);
+    }
+
+    @Test
+    void setBackupCodeUsed() {
+        User user = TestUtils.getUser();
+        BackupCode backupCode = new BackupCode("1234", user);
+        backupCodeService.setBackupCodeUsed(backupCode);
+        ArgumentCaptor<BackupCode> argumentCaptor = ArgumentCaptor.forClass(BackupCode.class);
+        verify(backupCodeRepository).save(argumentCaptor.capture());
+        BackupCode capturedData = argumentCaptor.getValue();
+        assertThat(capturedData.isUsed()).isTrue();
     }
 }

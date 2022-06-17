@@ -128,6 +128,7 @@ public class UserServiceImpl implements UserService {
         user.setRole(Role.USER);
         user.setEmailVerified(true);
         user.setActive(true);
+        userRepository.save(user);
         confirmationTokenService.setConfirmationTokenConfirmedAt(token);
         emailService.sendEmail(user.getEmail(), "Welcome", EmailConstant.buildWelcomeEmail(user.getFirstName()));
     }
@@ -223,6 +224,7 @@ public class UserServiceImpl implements UserService {
             throw new Same2FAStateException(String.format("Same 2FA State (%s)", use2FA ? "Activated" : "Deactivated"));
 
         user.setUsing2FA(use2FA);
+        userRepository.save(user);
         Authentication authentication = new UsernamePasswordAuthenticationToken(
                 user,
                 user.getPassword(),
@@ -245,6 +247,7 @@ public class UserServiceImpl implements UserService {
     public void incrementRefreshTokenCount(User user) {
         int refreshTokenCount = user.getRefreshTokenCount();
         user.setRefreshTokenCount(++refreshTokenCount);
+        userRepository.save(user);
     }
 
     @Override

@@ -56,5 +56,6 @@ public class BackupCodeServiceImpl implements BackupCodeService {
     @Override
     public void setBackupCodeUsed(BackupCode backupCode) {
         backupCode.setUsed(true);
+        backupCodeRepository.save(backupCode);
     }
 }

@@ -25,6 +25,7 @@ public class CustomUserDetailsService implements UserDetailsService {
                 .orElseThrow(() -> new UsernameNotFoundException("No user found by email: " + email));
 
         user.setLastLoggedIn(new Date());
+        userRepository.save(user);
         return new UserPrincipal(user);
     }
 }

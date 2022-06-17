@@ -39,6 +39,7 @@ public class PasswordResetTokenServiceImpl implements PasswordResetTokenService 
                 .findPasswordResetTokenByToken(token)
                 .orElseThrow(() -> new TokenNotFoundException("Token not found"));
         passwordResetToken.setConfirmedAt(LocalDateTime.now());
+        passwordResetTokenRepository.save(passwordResetToken);
     }
 
     @Override

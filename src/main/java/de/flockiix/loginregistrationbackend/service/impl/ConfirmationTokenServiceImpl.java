@@ -38,5 +38,6 @@ public class ConfirmationTokenServiceImpl implements ConfirmationTokenService {
                 .findConfirmationTokenByToken(token)
                 .orElseThrow(() -> new TokenNotFoundException("Token not found"));
         confirmationToken.setConfirmedAt(LocalDateTime.now());
+        confirmationTokenRepository.save(confirmationToken);
     }
 }

@@ -1,7 +1,7 @@
 package de.flockiix.loginregistrationbackend.service;
 
-import de.flockiix.loginregistrationbackend.constant.EmailConstant;
 import de.flockiix.loginregistrationbackend.dto.PasswordDto;
+import de.flockiix.loginregistrationbackend.enumeration.Role;
 import de.flockiix.loginregistrationbackend.model.ConfirmationToken;
 import de.flockiix.loginregistrationbackend.model.PasswordResetToken;
 import de.flockiix.loginregistrationbackend.model.User;
@@ -69,7 +69,8 @@ class UserServiceTest {
         RequestContextHolder.setRequestAttributes(new ServletRequestAttributes(mockRequest));
         User user = TestUtils.getVerifiedUser(TestUtils.getUserPayload());
         given(userRepository.findUserByEmail(user.getEmail())).willReturn(Optional.of(user));
-        userService.login(user.getEmail(), user.getPassword());
+        User actual = userService.login(user.getEmail(), user.getPassword());
+        assertThat(actual).isEqualTo(user);
     }
 
     @Test
@@ -108,8 +109,14 @@ class UserServiceTest {
                 user
         )));
         userService.confirmToken(token);
+        ArgumentCaptor<User> argumentCaptor = ArgumentCaptor.forClass(User.class);
+        verify(userRepository).save(argumentCaptor.capture());
+        User capturedUser = argumentCaptor.getValue();
+        assertThat(capturedUser.getRole()).isEqualTo(Role.USER);
+        assertThat(capturedUser.isEmailVerified()).isTrue();
+        assertThat(capturedUser.isActive()).isTrue();
         verify(confirmationTokenService).setConfirmationTokenConfirmedAt(token);
-        verify(emailService).sendEmail(user.getEmail(), "Welcome", EmailConstant.buildWelcomeEmail(user.getFirstName()));
+        verify(emailService).sendEmail(Mockito.any(), Mockito.any(), Mockito.any());
     }
 
     @Test
@@ -147,20 +154,20 @@ class UserServiceTest {
         User user = TestUtils.getUser();
         given(userRepository.findUserByEmail(user.getEmail())).willReturn(Optional.of(user));
         given(passwordResetTokenService.isAllowedToRequestPasswordResetToken(user.getEmail())).willReturn(true);
-        given(passwordResetTokenService.createPasswordResetTokenForUser(user)).willReturn(
-                new PasswordResetToken(
+        given(passwordResetTokenService.createPasswordResetTokenForUser(user)).willReturn(new PasswordResetToken(
                         LocalDateTime.now().minusMinutes(5),
                         LocalDateTime.now().plusMinutes(5),
                         user
                 )
         );
         userService.createPasswordResetToken(user.getEmail());
+        verify(passwordResetTokenService).createPasswordResetTokenForUser(user);
         verify(emailService).sendEmail(Mockito.any(), Mockito.any(), Mockito.any());
     }
 
     @Test
     void resetUserPassword() {
-        User user = TestUtils.getUser();
+        User user = TestUtils.getVerifiedUser(TestUtils.getUserPayload());
         String token = "1234";
         String newPassword = TestUtils.getStrongPassword();
         given(passwordResetTokenService.getPasswordResetTokenByToken(token)).willReturn(
@@ -170,8 +177,14 @@ class UserServiceTest {
                         user
                 ))
         );
+        given(bCryptPasswordEncoder.encode(newPassword + user.getSecret())).willReturn(newPassword);
         userService.resetUserPassword(token, newPassword);
+        ArgumentCaptor<User> argumentCaptor = ArgumentCaptor.forClass(User.class);
+        verify(userRepository).save(argumentCaptor.capture());
+        User capturedUser = argumentCaptor.getValue();
+        assertThat(capturedUser.getPassword()).isEqualTo(newPassword);
         verify(passwordResetTokenService).setPasswordResetTokenConfirmedAt(token);
+        verify(emailService).sendEmail(Mockito.any(), Mockito.any(), Mockito.any());
     }
 
     @Test
@@ -187,6 +200,11 @@ class UserServiceTest {
         given(userRepository.findUserByEmail(user.getEmail())).willReturn(Optional.of(user));
         given(bCryptPasswordEncoder.matches(Mockito.any(), Mockito.any())).willReturn(true);
         userService.updateUserPassword(passwordDto);
+        ArgumentCaptor<User> argumentCaptor = ArgumentCaptor.forClass(User.class);
+        verify(userRepository).save(argumentCaptor.capture());
+        User capturedUser = argumentCaptor.getValue();
+        assertThat(bCryptPasswordEncoder.matches(newPassword + capturedUser.getSecret(), capturedUser.getPassword())).isTrue();
+        verify(emailService).sendEmail(Mockito.any(), Mockito.any(), Mockito.any());
     }
 
     @Test
@@ -199,6 +217,11 @@ class UserServiceTest {
         given(userRepository.findUserByEmail(user.getEmail())).willReturn(Optional.of(user));
         given(backupCodeService.createBackupCodes(user)).willReturn(backupCodes);
         userService.updateUser2FA(true);
-        verify(emailService).sendEmail(user.getEmail(), "2 FA Activated", EmailConstant.build2FAActivatedEmail(user.getFirstName(), backupCodes));
+        ArgumentCaptor<User> argumentCaptor = ArgumentCaptor.forClass(User.class);
+        verify(userRepository).save(argumentCaptor.capture());
+        User capturedUser = argumentCaptor.getValue();
+        assertThat(capturedUser.isUsing2FA()).isTrue();
+        verify(backupCodeService).createBackupCodes(user);
+        verify(emailService).sendEmail(Mockito.any(), Mockito.any(), Mockito.any());
     }
 }

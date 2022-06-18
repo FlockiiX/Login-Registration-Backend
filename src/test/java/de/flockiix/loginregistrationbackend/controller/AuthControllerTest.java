@@ -4,6 +4,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import de.flockiix.loginregistrationbackend.config.properties.SecurityProperties;
 import de.flockiix.loginregistrationbackend.exception.EmailSendFailedException;
 import de.flockiix.loginregistrationbackend.jwt.JwtTokenProvider;
+import de.flockiix.loginregistrationbackend.model.JwtAuthenticationResponse;
 import de.flockiix.loginregistrationbackend.repository.DeviceMetadataRepository;
 import de.flockiix.loginregistrationbackend.repository.UserRepository;
 import de.flockiix.loginregistrationbackend.service.EmailService;
@@ -19,10 +20,6 @@ import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.test.context.TestPropertySource;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.ResultActions;
-
-import javax.servlet.http.Cookie;
-
-import java.util.Objects;
 
 import static de.flockiix.loginregistrationbackend.util.TestUtils.*;
 import static org.assertj.core.api.Assertions.assertThat;
@@ -73,8 +70,9 @@ class AuthControllerTest {
                 .andDo(print())
                 .andExpect(status().isOk());
 
-        String accessToken = resultActions.andReturn().getResponse().getHeader("Jwt-Access-Token");
-        String refreshToken = resultActions.andReturn().getResponse().getHeader("Set-Cookie");
+        var jsonNode = objectMapper.readTree(resultActions.andReturn().getResponse().getContentAsString());
+        var accessToken = jsonNode.get("accessToken").asText();
+        var refreshToken = jsonNode.get("refreshToken").asText();
         assertThat(accessToken).isNotNull();
         assertThat(refreshToken).isNotNull();
     }
@@ -243,14 +241,15 @@ class AuthControllerTest {
         ResultActions resultActions = mockMvc.perform(
                         get("/api/v1/auth/refresh")
                                 .headers(getFakeHeaders())
-                                .header(HttpHeaders.AUTHORIZATION, "Bearer " + accessToken)
-                                .cookie(new Cookie("refresh-token", refreshToken))
+                                .contentType(MediaType.APPLICATION_JSON)
+                                .content(objectMapper.writeValueAsString(new JwtAuthenticationResponse("", refreshToken)))
                 )
                 .andDo(print())
                 .andExpect(status().isOk());
 
-        var actualAccessToken = resultActions.andReturn().getResponse().getHeader("Jwt-Access-Token");
-        var actualRefreshToken = Objects.requireNonNull(resultActions.andReturn().getResponse().getCookie("refresh-token")).getValue();
+        var jsonNode = objectMapper.readTree(resultActions.andReturn().getResponse().getContentAsString());
+        var actualAccessToken = jsonNode.get("accessToken").asText();
+        var actualRefreshToken = jsonNode.get("refreshToken").asText();
         assertThat(accessToken).isNotEqualTo(actualAccessToken);
         assertThat(refreshToken).isEqualTo(actualRefreshToken);
     }
@@ -259,7 +258,6 @@ class AuthControllerTest {
     void refreshTokenWithoutRefreshToken() throws Exception {
         mockMvc.perform(
                         get("/api/v1/auth/refresh")
-                                .headers(getFakeHeaders())
                 )
                 .andDo(print())
                 .andExpect(status().isBadRequest());

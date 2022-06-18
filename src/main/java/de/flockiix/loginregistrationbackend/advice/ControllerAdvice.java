@@ -8,6 +8,7 @@ import org.slf4j.LoggerFactory;
 import org.springframework.http.HttpMethod;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.http.converter.HttpMessageNotReadableException;
 import org.springframework.security.access.AccessDeniedException;
 import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.security.authentication.DisabledException;
@@ -152,6 +153,11 @@ public class ControllerAdvice {
     public ResponseEntity<HttpResponse> internalServerErrorException(Exception exception) {
         LOGGER.error(exception.getMessage());
         return createHttpResponse(INTERNAL_SERVER_ERROR, "An error occurred while processing the request");
+    }
+
+    @ExceptionHandler(HttpMessageNotReadableException.class)
+    public ResponseEntity<HttpResponse> httpMessageNotReadableException(HttpMessageNotReadableException exception) {
+        return createHttpResponse(BAD_REQUEST, "Mandatory Request-body is missing");
     }
 
     @ExceptionHandler(MissingServletRequestParameterException.class)

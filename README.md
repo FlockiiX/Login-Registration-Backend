@@ -19,3 +19,5 @@ Current stages:
 
 ## Accessing
 You can access the API under [localhost:8080](http://localhost:8080).
+
+You can access the PostgreSQL database directly under `localhost:5432`.

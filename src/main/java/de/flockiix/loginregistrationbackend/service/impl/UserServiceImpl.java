@@ -92,16 +92,16 @@ public class UserServiceImpl implements UserService {
                 lastName,
                 displayName,
                 email,
-                password,
+                null,
                 new Date(),
                 Role.UNVERIFIED,
                 false,
                 false
         );
 
-        userRepository.save(user);
         String encodedPassword = bCryptPasswordEncoder.encode(password + user.getSecret());
         user.setPassword(encodedPassword);
+        userRepository.save(user);
         sendConfirmationToken(user);
     }
 

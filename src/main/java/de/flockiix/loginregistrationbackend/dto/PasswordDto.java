@@ -11,8 +11,4 @@ public record PasswordDto(String oldPassword,
         this.newPassword = newPassword;
     }
 
-    @Override
-    public String newPassword() {
-        return newPassword;
-    }
 }

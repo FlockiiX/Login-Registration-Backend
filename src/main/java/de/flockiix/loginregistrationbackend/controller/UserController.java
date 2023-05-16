@@ -55,7 +55,7 @@ public class UserController extends ControllerAdvice {
     public ResponseEntity<HttpResponse> resetPassword(@RequestParam("token") String token, @Valid @RequestBody PasswordDto passwordDto) {
         userService.resetUserPassword(
                 token,
-                passwordDto.getNewPassword()
+                passwordDto.newPassword()
         );
 
         return response(OK, "Success");

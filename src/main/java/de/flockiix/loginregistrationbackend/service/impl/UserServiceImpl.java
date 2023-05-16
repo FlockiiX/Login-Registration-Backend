@@ -196,10 +196,10 @@ public class UserServiceImpl implements UserService {
                 .findUserByEmail(authentication.getPrincipal().toString())
                 .orElseThrow(() -> new UserNotFoundException("User not found"));
 
-        if (!isValidOldPassword(user, passwordDto.getOldPassword()))
+        if (!isValidOldPassword(user, passwordDto.oldPassword()))
             throw new InvalidPasswordException("Invalid old password");
 
-        updateUserPassword(user, passwordDto.getNewPassword());
+        updateUserPassword(user, passwordDto.newPassword());
     }
 
     private boolean isValidOldPassword(User user, String oldPassword) {
